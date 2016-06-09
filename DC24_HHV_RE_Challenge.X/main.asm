@@ -72,13 +72,8 @@ _start
 ;   If so, then one point completed
 
 _pin_init
-    ; Set OSC to 4 MHz
-    BANKSEL OSCCON
-    MOVLW   B'01101000'
-    MOVWF   OSCCON
-    
     BANKSEL LATA
-    MOVLW   B'00110010'     ; Set LED, I2C, and TX high
+    MOVLW   B'00110011'     ; Set LED, I2C, and TX high
     MOVWF   LATA
     BANKSEL TRISA
     BCF	    TRISA, 0	    ; Let TX be low so we get a 0
@@ -87,8 +82,16 @@ _pin_init
     BANKSEL OPTION_REG
     BCF     OPTION_REG, 7
     
+    ; Set OSC to 4 MHz
+    BANKSEL OSCCON
+    MOVLW   B'01101000'
+    MOVWF   OSCCON
+    
+    BANKSEL LATA
+    BCF	    LATA, 0
+    
     ; Delay 200 us to let everything stabilize, and write UART 0
-    MOVLW   .20
+    MOVLW   .22
     CALL    _delay_Wx10us
     BANKSEL LATA
     BSF	    LATA, 0
@@ -214,7 +217,7 @@ I2C_CIPHERTEXT
     
 PLAIN_STRING
     BRW
-    DT	"Change ROM byte 0x97 from 0xAA to 0x42"
+    DT	"Change ROM byte 0x9B from 0xAA to 0x42"
 
 _check_rom
     CLRW
