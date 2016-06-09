@@ -29,9 +29,9 @@
 ; blocking delays because we don't care in this application.
 
 
-EXTERN  TMP
+EXTERN  TMP, TMP2
 
-GLOBAL _delay_Wx10us
+GLOBAL _delay_Wx10us, _delay_Wx1ms
 
 CODE
 
@@ -51,6 +51,22 @@ _delay_Wx10us
     NOP
     DECFSZ  TMP, F
     GOTO    $-5
+
+    RETURN
+    
+; Clobbers global TMP and W register.
+; Remains in same bank since TMP is in the Common RAM block
+;
+; Delays (W*(1 ms + 5 us)) (call in, overhead, return)
+;
+
+_delay_Wx1ms
+    MOVWF   TMP2
+    
+    MOVLW   .100
+    CALL    _delay_Wx10us
+    DECFSZ  TMP2, F
+    GOTO    $-3
 
     RETURN
 

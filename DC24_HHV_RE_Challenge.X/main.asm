@@ -26,7 +26,7 @@
 
 #include "p12f1571.inc"
 
-__CONFIG _CONFIG1, _FOSC_INTOSC & _WDTE_OFF & _PWRTE_ON & _MCLRE_OFF & _CP_OFF & _BOREN_OFF & _CLKOUTEN_OFF
+__CONFIG _CONFIG1, _FOSC_INTOSC & _WDTE_OFF & _PWRTE_OFF & _MCLRE_OFF & _CP_OFF & _BOREN_OFF & _CLKOUTEN_OFF
 __CONFIG _CONFIG2, _WRT_OFF & _PLLEN_OFF & _STVREN_OFF & _LPBOREN_OFF & _LVP_OFF
 
 #DEFINE ROMFIXUP        0 ; State flag: ROM address
@@ -34,7 +34,7 @@ __CONFIG _CONFIG2, _WRT_OFF & _PLLEN_OFF & _STVREN_OFF & _LPBOREN_OFF & _LVP_OFF
 #DEFINE CIPHER          2 ; State flag: Cipher, OTHER pin to TX
 #DEFINE UART            3 ; State flag: UART, I2C pins short
 
-EXTERN  _delay_Wx10us, _tx_uart_byte
+EXTERN  _delay_Wx10us, _tx_uart_byte, _tx_i2c_start, _tx_i2c_stop, _tx_i2c_byte, _delay_Wx1ms
 GLOBAL  TMP, TMP2, ITR
 
 ; Global RAM locations
@@ -72,15 +72,27 @@ _start
 ;   If so, then one point completed
 
 _pin_init
-    BANKSEL PORTA
-    CLRF    PORTA
+    ; Set OSC to 4 MHz
+    BANKSEL OSCCON
+    MOVLW   B'01101000'
+    MOVWF   OSCCON
+    
     BANKSEL LATA
-    MOVLW   B'00110010'     ; Set LED and I2C high
+    MOVLW   B'00110010'     ; Set LED, I2C, and TX high
     MOVWF   LATA
+    BANKSEL TRISA
+    BCF	    TRISA, 0	    ; Let TX be low so we get a 0
     BANKSEL ANSELA
     CLRF    ANSELA
     BANKSEL OPTION_REG
     BCF     OPTION_REG, 7
+    
+    ; Delay 200 us to let everything stabilize, and write UART 0
+    MOVLW   .20
+    CALL    _delay_Wx10us
+    BANKSEL LATA
+    BSF	    LATA, 0
+    
     BANKSEL ODCONA
     MOVLW   B'00100010'     ; Enable OD outputs on I2C pins
     MOVWF   ODCONA
@@ -88,11 +100,8 @@ _pin_init
     CLRF    STATE
     MOVLW   .4
     MOVWF   COUNT
-
-    ; Set OSC to 4 MHz
-    BANKSEL OSCCON
-    MOVLW   B'01101000'
-    MOVWF   OSCCON
+    MOVLW   0x42
+    MOVWF   ITR
 
     ; Delay 100 us to let everything stabilize
     MOVLW   .100
@@ -108,11 +117,11 @@ _check_cipher
     ; Drive TX and see if OTHER follows.
     ; We drive TX because this way it looks like a programing glitch and its
     ; misdirection from OTHER being a vital pin.
-    BANKSEL TRISA
-    BCF     TRISA, 0         ; Set TX to an output, which is now low
+    BANKSEL LATA
+    BCF     LATA, 0         ; Set TX to an output, which is now low
 
-    ; Delay 100 us
-    MOVLW   .100
+    ; Delay 220 us, should register as UART NULL
+    MOVLW   .22
     CALL    _delay_Wx10us
 
     ; Save PORTA, and set TX back high since thats UART idle
@@ -130,7 +139,7 @@ _check_cipher
     MOVLW   .2
     SUBWF   COUNT, F        ; Update count number, should be 2 here
     GOTO    _check_rom      ; We don't even worry about I2C because its surely
-                            ; completed.
+			    ; completed.
 
 _check_i2c
     ; Set I2C pins to output, already as OD, and LATA has them high
@@ -139,7 +148,7 @@ _check_i2c
     BCF     TRISA, 1
 
     ; Delay 100 us
-    MOVLW   .100
+    MOVLW   .10
     CALL    _delay_Wx10us
 
     ; Verify I2C bus state before continuing
@@ -154,7 +163,7 @@ _check_i2c
     BCF     LATA, 5         ; I2C OD clock to go low, invalid bus state
 
     ; Delay 100 us
-    MOVLW   .100
+    MOVLW   .10
     CALL    _delay_Wx10us
 
     ; Save PORTA status, set CLK back high
@@ -169,17 +178,59 @@ _check_i2c
     ; Score points and mark state bits as completed
     BSF     STATE, UART
     DECF    COUNT, F
+    
+    GOTO    _check_rom
 
+SECRET_BYTE  
+    BRW
+    DT	0xAA
 
+MEGA_SECRET
+    BRW
+    DT	0x31, 0xB, 0xF, 0x24, 0x70, 0x60, 0x74, 0x64, 0x6D, 0x7A, 0x2A, 0x6A
+    DT	0x6B, 0x68, 0x63, 0x28, 0x30, 0x74, 0x7A, 0x67, 0x34, 0x71, 0x78, 0x62
+    DT	0x77, 0x7F, 0x3A, 0x6E, 0x73, 0x64, 0x3E, 0x6B, 0x41, 0x49, 0x56, 0x3
+    DT	0x4D, 0x4B, 0x48, 0x52, 0x4A, 0x5D, 0x19, 0x18, 0x40, 0xD, 0x42, 0x43
+    DT	0x55, 0x65
+
+UART_PLAIN
+    BRW
+    DT	0x24, 0xB, 0xF, 0x35, 0x24, 0x61, 0x68, 0x66, 0x28, 0x3B, 0x2A, 0x78
+    DT	0x62, 0x64, 0x7E, 0x2F, 0x7E, 0x74, 0x77, 0x64, 0x60, 0x70, 0x74, 0x37
+    DT	0x7D, 0x7A, 0x7B, 0x69, 0x68, 0x3D, 0x7B, 0x77, 0x54, 0x1, 0x56, 0x56
+    DT	0x67
+
+UART_CIPHERKEY
+    BRW
+    DT	0x1C, 0xB, 0xF, 0x40, 0x4C, 0x56, 0x40, 0x5D, 0x45, 0x47, 0x41, 0x5B
+    DT	0x49, 0x54, 0x5B, 0x4D, 0x59, 0x56, 0x40, 0x5C, 0x40, 0x59, 0x40, 0x46
+    DT	0x5C, 0x53, 0x42, 0x4C, 0x5D
+
+I2C_CIPHERTEXT
+    BRW
+    DT	0x1C, 0xB, 0xF, 0x61, 0x60, 0x7F, 0x62, 0x6C, 0x28, 0x63, 0x68, 0x6A
+    DT	0x2C, 0x7D, 0x63, 0x7A, 0x61, 0x31, 0x79, 0x71, 0x60, 0x6C, 0x36, 0x79
+    DT	0x68, 0x6C, 0x76, 0x50, 0x1C
+    
+PLAIN_STRING
+    BRW
+    DT	"Change ROM byte 0x97 from 0xAA to 0x42"
 
 _check_rom
-    ; Test for address set at ROM location
-    ; XXX
+    CLRW
+    CALL    SECRET_BYTE
+    SUBWF   ITR, W
+    
+    BTFSS   STATUS, Z
+    GOTO    _check_jumper
+    
+    BSF	    STATE, ROMFIXUP
+    DECF    COUNT, F
 
 _check_jumper
     ; Test for JUMPER
     BANKSEL PORTA
-    BTFSC   PORTA, 2
+    BTFSS   PORTA, 2
     GOTO    _uart_stage
 
     ; Check if the point has already been counted
@@ -207,7 +258,7 @@ _uart_stage
 _uart_plain_loop
     MOVF    OFFS, W
     CALL    UART_PLAIN
-    ; Insert de-obfuscation here
+    XORWF   OFFS, W
     CALL    _tx_uart_byte
     DECFSZ  OFFS
     GOTO    _uart_plain_loop
@@ -216,13 +267,13 @@ _uart_plain_loop
 
 _uart_cipherkey
     CLRW
-    CALL    UART_PLAIN
+    CALL    UART_CIPHERKEY
     MOVWF   OFFS
 
 _uart_cipherkey_loop
     MOVF    OFFS, W
     CALL    UART_CIPHERKEY
-    ; Insert de-obfuscation here
+    XORWF   OFFS, W
     CALL    _tx_uart_byte
     DECFSZ  OFFS
     GOTO    _uart_cipherkey_loop
@@ -232,38 +283,51 @@ _i2c_stage
     CLRW
     CALL    I2C_CIPHERTEXT
     MOVWF   OFFS
-
     CALL    _tx_i2c_start
+    
 _i2c_ciphertext_loop
     MOVF    OFFS, W
     CALL    I2C_CIPHERTEXT
-    ; Insert de-obfuscation here
+    XORWF   OFFS, W
     CALL    _tx_i2c_byte
     DECFSZ  OFFS
-    GOTO    _i2c_ciphertext
+    GOTO    _i2c_ciphertext_loop
     
+    CALL    _tx_i2c_stop
 
 _blink_LED
-
-    ; Blink LED a number of times based on COUNT
-
-    ; Reset here
-
-
-MEGA_SECRET
-    BRW
-    DT  .23, "\n\rTell l33tbunni that you found the 'mega secret'"
-
-UART_PLAIN
-    BRW
-    DT  .23, "\n\rgnirts gnol a gnitseT"
-
-UART_CIPHERKEY
-    BRW
-    DT  .28, "\n\rABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
-I2C_CIPHERTEXT
-    BRW
-    DT  .26, "\n\rdetpyrcne eb dluow sihT", 0x0
+    BANKSEL TRISA
+    BCF	    TRISA, 4
+    MOVLW   .0
+    SUBWF   COUNT, W
+    BTFSS   STATUS, Z
+    GOTO    _blink_loop
+    
+    BANKSEL LATA
+    BCF	    LATA, 4
+    
+    SLEEP
+    
+_blink_loop
+    BANKSEL LATA
+    BCF	    LATA, 4
+    MOVLW   .255
+    CALL    _delay_Wx1ms
+    BSF	    LATA, 4
+    MOVLw   .255
+    CALL    _delay_Wx1ms
+    DECFSZ  COUNT
+    GOTO    _blink_loop
+    
+    MOVLW   .255
+    CALL    _delay_Wx1ms
+    MOVLW   .255
+    CALL    _delay_Wx1ms
+    MOVLW   .255
+    CALL    _delay_Wx1ms
+    MOVLW   .255
+    CALL    _delay_Wx1ms
+    
+    RESET
 
 END

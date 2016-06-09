@@ -52,7 +52,7 @@ _tx_uart_byte
     BANKSEL LATA
     BCF     LATA, 0
     CALL    _bit_delay
-    CALL    $+1
+    GOTO    $+1
     NOP
 
 _byte_loop
@@ -65,13 +65,13 @@ _byte_loop
     CALL    _bit_delay
 
     DECFSZ  ITR
-    CALL    _byte_loop
+    GOTO    _byte_loop
 
     GOTO    $+1
     GOTO    $+1
     NOP
     ; Send stop bit
-    BCF     LATA, 0
+    BSF     LATA, 0
     CALL    _bit_delay
     GOTO    $+1
     GOTO    $+1

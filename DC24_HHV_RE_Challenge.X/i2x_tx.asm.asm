@@ -69,11 +69,11 @@ _tx_i2c_byte
     RLF     TMP, F          ; Mov MSB, through carry, to bit 0
     RLF     TMP, F
 _byte_loop
-    RLF     TMP, W          ; Next bit is in correct position
+    RLF     TMP, F          ; Next bit is in correct position
+    MOVF    TMP, W
     ANDLW   B'00000010'
     IORWF   LATA, F
     BSF     LATA, 5
-    RLF     TMP, F          ; Prep for next bit
     GOTO    $+1
     BCF     LATA, 5
     BCF     LATA, 1
@@ -90,7 +90,4 @@ _byte_loop
     RETURN
 
 
-
-
-
-
+END
