@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.6.0">
+<eagle version="6.5.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -7759,6 +7759,8 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <sheets>
 <sheet>
 <plain>
+<wire x1="-66.04" y1="55.88" x2="-58.42" y2="55.88" width="0.1524" layer="97"/>
+<text x="-55.88" y="55.88" size="1.27" layer="97">SHORT THESE!</text>
 </plain>
 <instances>
 <instance part="LED1" gate="G$1" x="-86.36" y="48.26"/>
@@ -7880,8 +7882,8 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <net name="I2C_DAT" class="0">
 <segment>
 <pinref part="R3" gate="G$1" pin="1"/>
-<wire x1="-58.42" y1="58.42" x2="-58.42" y2="55.88" width="0.1524" layer="91"/>
-<label x="-58.42" y="55.88" size="1.27" layer="95" rot="R270" xref="yes"/>
+<wire x1="-58.42" y1="58.42" x2="-58.42" y2="53.34" width="0.1524" layer="91"/>
+<label x="-58.42" y="53.34" size="1.27" layer="95" rot="R270" xref="yes"/>
 </segment>
 <segment>
 <pinref part="U1" gate="G$1" pin="RA1/ICSPCLK"/>
@@ -7914,8 +7916,8 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <net name="I2C_CLK" class="0">
 <segment>
 <pinref part="R2" gate="G$1" pin="1"/>
-<wire x1="-66.04" y1="58.42" x2="-66.04" y2="55.88" width="0.1524" layer="91"/>
-<label x="-66.04" y="55.88" size="1.27" layer="95" rot="R270" xref="yes"/>
+<wire x1="-66.04" y1="58.42" x2="-66.04" y2="53.34" width="0.1524" layer="91"/>
+<label x="-66.04" y="53.34" size="1.27" layer="95" rot="R270" xref="yes"/>
 </segment>
 <segment>
 <pinref part="U1" gate="G$1" pin="RA5"/>
