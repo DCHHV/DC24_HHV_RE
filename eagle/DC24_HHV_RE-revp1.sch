@@ -7761,6 +7761,10 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <plain>
 <wire x1="-66.04" y1="55.88" x2="-58.42" y2="55.88" width="0.1524" layer="97"/>
 <text x="-55.88" y="55.88" size="1.27" layer="97">SHORT THESE!</text>
+<text x="12.7" y="22.86" size="1.27" layer="97">Set up to have a clever hidden
+short. Don't want epoxy on
+there after all. HHV tools
+could be mis-used.</text>
 </plain>
 <instances>
 <instance part="LED1" gate="G$1" x="-86.36" y="48.26"/>
@@ -7960,4 +7964,10 @@ You are welcome to use this library for commercial purposes. For attribution, we
 </sheets>
 </schematic>
 </drawing>
+<compatibility>
+<note version="6.3" minversion="6.2.2" severity="warning">
+Since Version 6.2.2 text objects can contain more than one line,
+which will not be processed correctly with this version.
+</note>
+</compatibility>
 </eagle>
