@@ -57,7 +57,7 @@ _delay_Wx10us
 ; Clobbers global TMP and W register.
 ; Remains in same bank since TMP is in the Common RAM block
 ;
-; Delays (W*(1 ms + 5 us)) (call in, overhead, return)
+; Delays ((W*(1 ms + 5 us)) + 5 us) (call in, overhead, return)
 ;
 
 _delay_Wx1ms

@@ -90,7 +90,7 @@ _pin_init
     BANKSEL LATA
     BCF	    LATA, 0
     
-    ; Delay 200 us to let everything stabilize, and write UART 0
+    ; Delay 220 us to let everything stabilize, appears as UART NULL
     MOVLW   .22
     CALL    _delay_Wx10us
     BANKSEL LATA
@@ -106,22 +106,24 @@ _pin_init
     MOVLW   0x42
     MOVWF   ITR
 
-    ; Delay 100 us to let everything stabilize
+    ; Delay 1 ms to let everything stabilize
     MOVLW   .100
     CALL    _delay_Wx10us
 
-_check_pins
+; First, check to see if the cipher has been decoded.
+; This would result in RA0 and RA3 tied together.
+; Here, we drive TX and leave OTHER alone, since OTHER is the "secret" part
+; Like this, it just looks like bad programming on the TX line ;)
+; If this is complete, we skip past I2C checks since surely thats done.
 
 _check_cipher
     BANKSEL PORTA
     BTFSS   PORTA, 3
     GOTO    _check_i2c
 
-    ; Drive TX and see if OTHER follows.
-    ; We drive TX because this way it looks like a programing glitch and its
-    ; misdirection from OTHER being a vital pin.
+    ; Set TX to an output, which is now low
     BANKSEL LATA
-    BCF     LATA, 0         ; Set TX to an output, which is now low
+    BCF     LATA, 0
 
     ; Delay 220 us, should register as UART NULL
     MOVLW   .22
@@ -140,10 +142,12 @@ _check_cipher
     BSF     STATE, UART
     BSF     STATE, CIPHER
     MOVLW   .2
-    SUBWF   COUNT, F        ; Update count number, should be 2 here
-    GOTO    _check_rom      ; We don't even worry about I2C because its surely
-			    ; completed.
+    SUBWF   COUNT, F
+    GOTO    _check_rom
 
+; If cipher has not been completed, lets see if the plain UART has been.
+; Cutting the trace between I2C CLK and DAT marks plain UART complete.
+; If the pins are shorted, there is only a blip seen on the output on each pin.
 _check_i2c
     ; Set I2C pins to output, already as OD, and LATA has them high
     BANKSEL TRISA
@@ -162,14 +166,15 @@ _check_i2c
     BTFSS   PORTA, 1
     GOTO    _check_rom
 
+    ; I2C clock to go low, invalid bus state
     BANKSEL LATA
-    BCF     LATA, 5         ; I2C OD clock to go low, invalid bus state
+    BCF     LATA, 5
 
     ; Delay 100 us
     MOVLW   .10
     CALL    _delay_Wx10us
 
-    ; Save PORTA status, set CLK back high
+    ; Save PORTA status, set CLK back high, and check saved DAT status
     BANKSEL PORTA
     MOVF    PORTA, W
     MOVWF   TMP
@@ -184,10 +189,16 @@ _check_i2c
     
     GOTO    _check_rom
 
+; The secret byte is just a marker, the default value of 0xAA is pretty obvious
+; This placeholder is checked to see if its changed.
 SECRET_BYTE  
     BRW
     DT	0xAA
 
+; Mega secret is printed nowhere by anything and just sits in ROM.
+; The decode process must the followed via other means to reveal what it says.
+; This is not a part of the main challenge, and is just a side quest.
+; It just says "Tell l33tbunni that you found the 'mega secret'"
 MEGA_SECRET
     BRW
     DT	0x31, 0xB, 0xF, 0x24, 0x70, 0x60, 0x74, 0x64, 0x6D, 0x7A, 0x2A, 0x6A
@@ -196,6 +207,12 @@ MEGA_SECRET
     DT	0x4D, 0x4B, 0x48, 0x52, 0x4A, 0x5D, 0x19, 0x18, 0x40, 0xD, 0x42, 0x43
     DT	0x55, 0x65
 
+; The following three are all printed via UART or I2C at various times.
+; This just uses a simple BRW jump table.  The first byte has the number of
+; bytes to follow. The next X bytes are the string in reverse order.
+; The printing functions start at byte[X], then byte[X-1], etc.
+; All of the bytes are also XORed against X.
+; Final printed byte is (byte[X]^X)
 UART_PLAIN
     BRW
     DT	0x24, 0xB, 0xF, 0x35, 0x24, 0x61, 0x68, 0x66, 0x28, 0x3B, 0x2A, 0x78
@@ -215,10 +232,13 @@ I2C_CIPHERTEXT
     DT	0x2C, 0x7D, 0x63, 0x7A, 0x61, 0x31, 0x79, 0x71, 0x60, 0x6C, 0x36, 0x79
     DT	0x68, 0x6C, 0x76, 0x50, 0x1C
     
+; This string is just a clue as to the secret_byte puzzle above.
 PLAIN_STRING
     BRW
     DT	"Change ROM byte 0x9B from 0xAA to 0x42"
 
+; Actually check the ROM location secret byte, and see if the value is 0x42
+; The compare is against ITR, unused up to this point, loaded earlier in code.
 _check_rom
     CLRW
     CALL    SECRET_BYTE
@@ -230,8 +250,8 @@ _check_rom
     BSF	    STATE, ROMFIXUP
     DECF    COUNT, F
 
+; Check that the jumper has been opened
 _check_jumper
-    ; Test for JUMPER
     BANKSEL PORTA
     BTFSS   PORTA, 2
     GOTO    _uart_stage
@@ -244,8 +264,8 @@ _check_jumper
     BSF     STATE, JUMPER
     DECF    COUNT
 
+; Here we print out either the plaintext clue, or the ciphertext key
 _uart_stage
-
     ; See if CIPHER has been completed
     BTFSC   STATE, CIPHER
     GOTO    _blink_LED
@@ -281,8 +301,11 @@ _uart_cipherkey_loop
     DECFSZ  OFFS
     GOTO    _uart_cipherkey_loop
 
+; If the plain UART has been solved, and hte I2C pins are not shorted,
+; output the cihphertext on them.
+; Accomplished by an I2C write to address 0x0. ACK is ignored, and actually
+; driven here by us as the master to simplify programming.
 _i2c_stage
-
     CLRW
     CALL    I2C_CIPHERTEXT
     MOVWF   OFFS
@@ -298,6 +321,9 @@ _i2c_ciphertext_loop
     
     CALL    _tx_i2c_stop
 
+; Blink the led a number of times indicating the number of challenges left, 
+; then pause and reboot running the whole process all over again.
+; If all completed, turn the LED on and go to sleep.
 _blink_LED
     BANKSEL TRISA
     BCF	    TRISA, 4

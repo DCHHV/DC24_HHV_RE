@@ -35,7 +35,7 @@ CODE
 
 ; Send I2C start bit, using RA5 and RA1 as clk and dat
 ;
-; Expects the port to be set up already in OD mode with the outputs high
+; Expects the port to be set up already in OD mode as outputs
 _tx_i2c_start
     BANKSEL LATA
     BCF     LATA, 1
@@ -46,7 +46,7 @@ _tx_i2c_start
 
 ; Send I2C stop bit, using RA5 and RA1 as clk and dat
 ;
-; Expects the port to be set up already in OD mode with the outputs high
+; Expects the port to be set up already in OD mode as outputs
 ; Expects clock and data to be low
 _tx_i2c_stop
     BANKSEL LATA
@@ -56,7 +56,7 @@ _tx_i2c_stop
     BSF     LATA, 1
     RETURN
 
-; Send a byte of I2C data, includes NAK clock, but we dont read the bit
+; Send a byte of I2C data, includes ACK clock, but we dont read it
 ; W, global TMP, ITR will be clobbered
 ;
 ; Expects clk and dat to be low here
