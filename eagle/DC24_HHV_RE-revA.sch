@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.6.0">
+<eagle version="6.5.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -7707,8 +7707,8 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <sheets>
 <sheet>
 <plain>
-<wire x1="-66.04" y1="55.88" x2="-58.42" y2="55.88" width="0.1524" layer="97"/>
-<text x="-55.88" y="55.88" size="1.27" layer="97">SHORT THESE!</text>
+<wire x1="-76.2" y1="48.26" x2="-68.58" y2="48.26" width="0.1524" layer="97"/>
+<text x="-66.04" y="48.26" size="1.27" layer="97">SHORT THESE!</text>
 <text x="12.7" y="22.86" size="1.27" layer="97">Set up to have a clever hidden
 short. Don't want epoxy on
 there after all. HHV tools
@@ -7717,13 +7717,13 @@ could be mis-used.</text>
 <instances>
 <instance part="LED1" gate="G$1" x="-86.36" y="48.26"/>
 <instance part="R1" gate="G$1" x="-86.36" y="55.88" rot="R90"/>
-<instance part="R2" gate="G$1" x="-66.04" y="63.5" rot="R90"/>
-<instance part="R3" gate="G$1" x="-58.42" y="63.5" rot="R90"/>
+<instance part="R2" gate="G$1" x="-76.2" y="55.88" rot="R90"/>
+<instance part="R3" gate="G$1" x="-68.58" y="55.88" rot="R90"/>
 <instance part="C1" gate="G$1" x="-55.88" y="35.56" rot="R180"/>
 <instance part="P+3" gate="VCC" x="-55.88" y="45.72" rot="MR0"/>
 <instance part="VSS3" gate="G$1" x="-55.88" y="27.94" rot="MR0"/>
-<instance part="P+4" gate="VCC" x="-58.42" y="73.66" rot="MR0"/>
-<instance part="P+5" gate="VCC" x="-66.04" y="73.66" rot="MR0"/>
+<instance part="P+4" gate="VCC" x="-68.58" y="66.04" rot="MR0"/>
+<instance part="P+5" gate="VCC" x="-76.2" y="66.04" rot="MR0"/>
 <instance part="P+6" gate="VCC" x="-86.36" y="66.04" rot="MR0"/>
 <instance part="SV1" gate="1" x="-10.16" y="88.9"/>
 <instance part="SV2" gate="1" x="-20.32" y="86.36" rot="R180"/>
@@ -7782,12 +7782,12 @@ could be mis-used.</text>
 <segment>
 <pinref part="R3" gate="G$1" pin="2"/>
 <pinref part="P+4" gate="VCC" pin="VCC"/>
-<wire x1="-58.42" y1="71.12" x2="-58.42" y2="68.58" width="0.1524" layer="91"/>
+<wire x1="-68.58" y1="63.5" x2="-68.58" y2="60.96" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="R2" gate="G$1" pin="2"/>
 <pinref part="P+5" gate="VCC" pin="VCC"/>
-<wire x1="-66.04" y1="71.12" x2="-66.04" y2="68.58" width="0.1524" layer="91"/>
+<wire x1="-76.2" y1="63.5" x2="-76.2" y2="60.96" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="R1" gate="G$1" pin="2"/>
@@ -7834,8 +7834,8 @@ could be mis-used.</text>
 <net name="I2C_DAT" class="0">
 <segment>
 <pinref part="R3" gate="G$1" pin="1"/>
-<wire x1="-58.42" y1="58.42" x2="-58.42" y2="53.34" width="0.1524" layer="91"/>
-<label x="-58.42" y="53.34" size="1.27" layer="95" rot="R270" xref="yes"/>
+<wire x1="-68.58" y1="50.8" x2="-68.58" y2="45.72" width="0.1524" layer="91"/>
+<label x="-68.58" y="45.72" size="1.27" layer="95" rot="R270" xref="yes"/>
 </segment>
 <segment>
 <pinref part="U1" gate="G$1" pin="RA1/ICSPCLK"/>
@@ -7868,8 +7868,8 @@ could be mis-used.</text>
 <net name="I2C_CLK" class="0">
 <segment>
 <pinref part="R2" gate="G$1" pin="1"/>
-<wire x1="-66.04" y1="58.42" x2="-66.04" y2="53.34" width="0.1524" layer="91"/>
-<label x="-66.04" y="53.34" size="1.27" layer="95" rot="R270" xref="yes"/>
+<wire x1="-76.2" y1="50.8" x2="-76.2" y2="45.72" width="0.1524" layer="91"/>
+<label x="-76.2" y="45.72" size="1.27" layer="95" rot="R270" xref="yes"/>
 </segment>
 <segment>
 <pinref part="U1" gate="G$1" pin="RA5"/>
