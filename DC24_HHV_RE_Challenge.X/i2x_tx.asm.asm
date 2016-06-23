@@ -75,6 +75,9 @@ _byte_loop
     IORWF   LATA, F
     BSF     LATA, 5
     GOTO    $+1
+    GOTO    $+1
+    GOTO    $+1
+    GOTO    $+1
     BCF     LATA, 5
     BCF     LATA, 1
 
@@ -82,9 +85,14 @@ _byte_loop
     GOTO    _byte_loop
 
     ; Send ACK
-    BSF     LATA, 5
+    GOTO    $+1
     GOTO    $+1
     NOP
+    BSF     LATA, 5
+    GOTO    $+1
+    GOTO    $+1
+    GOTO    $+1
+    GOTO    $+1
     BCF     LATA, 5
 
     RETURN
