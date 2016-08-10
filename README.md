@@ -9,5 +9,5 @@ Do not go any further than this if you wish to not see spoilers.  The eagle
 challenge.
 
 Todos:
+
 -Create BOM
--Create full write-up on process to complete the challenge

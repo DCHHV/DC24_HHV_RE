@@ -1,0 +1,80 @@
+This document is a writeup of the DEF CON 24 HHV Reverse Engineering Challenge.
+NOTE THAT THERE ARE SPOILERS IN HERE!
+
+As noted in the instructions, there are two large challenges; to derive the
+schematic from the PCB and assemble the board, and then the four challenges
+that are present in the firmware of the PCB.
+
+The PCB is rather small, just under 1" square, and houses a PIC, an LED, some
+pin headers, three resistors, and a capacitor.  The silkscreen contains no
+orientation markings, and only has locations marked for the major parts.  The
+1x4 pin headers are intended to be downward facing, with the 2x2 header for the
+coin cell up.  The coin cell is a CR2025 and can fit snugly between the 2x2
+pins.  The LED has had both of its pins clipped to the same length, the flat
+of the casing or the "cup" of the LED can be used to denote anode and cathode.
+A single, long, looping, twisting and turning trace is run about both sides of
+the PCB in order to make reverse engineering more difficult.  The resistor 
+locations are marked, but not the value locations.  The LED has a ~100 ohm 
+current limiting resistor, and there are two ~3k ohm resistors that make up
+an I2C bus.  The glossy black soldermask also increases the difficulty of 
+correctly following all of the traces.  See the individual puzzles below for
+more details about the PCB.
+
+Once assembled, there are four puzzles hidden in the firmware.  The LED will 
+blink once per remaining puzzle, sleep for a couple of seconds, and then loop.
+Each loop would check for various conditions, complete any necessary output,
+blink the LED, and then sleep again.  Two of the puzzles were asynchronous, 
+while the other two were completed first one, than the other.  However, a 
+bad assumption made allowed the two in a series to be bypassed easily.  See
+the information below for more details.
+
+1) "Open Me"
+On the bottom of the PCB is a small solder jumper, with a bridge between the 
+pads, and the label of "Open Me."  If the bridge is cut, however, there is a 
+sneak path that goes to the top PCB layer.  Vias are hidden in the "O" of 
+"Open" and "M" of "Me," making them very difficult to see.  If the copper
+trace is cut on either side of the two vias, then the circuit is successfully
+opened, and will allow the firmware to score points.
+
+2) Firmware Update
+While most of the strings in program code are obfuscated (see more about this
+below), there is one plaintext string that instructs the player to "Change
+ROM byte 0x9B from 0xAA to 0x42".  If the player uses the MPLAB IPE software
+to read the ROM, change the byte in memory, and write it back, then all further
+loops of the program will consider this completed, and will score a point.  
+It was made a little more challenging by the fact that IPE shows word addresses
+rather than bytes.
+
+3) UART
+RA0 will output a string as a UART running at 38400 baud that says "Cut the
+short between pins 2 and 6".  This string is obfuscated in program memory. See
+the c/ folder for the obfuscator used, and see main.asm in the project
+directory for how the jump table works.  Once the short between the two pins
+is severed, the point is scored and the software moves on to the next mode
+below.
+
+4) I2C
+Pins 2 and 6 referenced above are I2C data and clock.  The PCB has a short
+between these two, right between the two I2C bus resistors.  Once the short is 
+cut, the program will recognize this, and begin the second step of this two 
+part puzzle.  The UART port mentioned above will output a new string,
+"AWXJDQVLTORGIBUYEPKNMZFSHC" and the I2C clock and data pins, RA5 and RA1
+respectively, will constantly do a write to a non-existent I2C slave at address
+0x0.  The write data is ASCII, and can be seen as "Klupn ytbk qump abj kdzdb".
+This is the ciphertext of a substitution cipher, and the UART output is the 
+cipher key.  When decoded, the string says "Short pins four and seven".  Once
+those two pins are shorted, the point is scored.  Nothing further comes out
+of either the UART or I2C pins at this point.
+
+There is an exploit here that can be taken advantage of.  The software first
+checks to see if pins 4 and 7 are shorted, if so, then it assumes both 3) and 
+4) above have been completed, and scores two points.  This is due to a bad
+assumption on my part, and is simply part of the challenge.
+
+Bonus) "Mega Secret"
+There is a bonus puzzle contained within the firmware.  In the same manner as
+the obfuscated strings for UART and I2C above, a string was in program memory
+but not referenced by any code.  The object here was to have reverse engineered
+the string obfuscation used, find the section of code that was unused, and 
+deobfuscate it there.  The string read "Tell l33tbunni that you found the 
+'mega secret'".  No player had reportedly found this during DEF CON 24.
