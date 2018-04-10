@@ -1,0 +1,8 @@
+Qty Value        Device                   Package                           Parts    Description
+1                JP2QE                    JP2Q                              JP2      JUMPER 2x2
+1                LED5MM                   LED5MM                            LED1     LED
+2                MA04-1                   MA04-1                            SV1, SV2 PIN HEADER 1x4
+1   .1uF         C-EU050-024X044          C050-024X044                      C1       CAPACITOR ALUM.
+1   100          R-US_0204/7              0204/7                            R1       RESISTOR
+2   2k           R-US_0204/7              0204/7                            R2, R3   RESISTOR
+1   PIC12F1571   PIC12F1571               DIL8                              U1

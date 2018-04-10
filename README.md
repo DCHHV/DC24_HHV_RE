@@ -7,7 +7,3 @@ DEF CON 24 Hardware Hacking Village Reverse Engineering challenge.
 Do not go any further than this if you wish to not see spoilers.  The eagle
 .brd file can be submitted to OSHPark directly if you wish to re-create the 
 challenge.
-
-Todos:
-
--Create BOM
