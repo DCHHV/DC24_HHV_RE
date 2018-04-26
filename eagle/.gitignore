@@ -1,3 +1,5 @@
 *.[b,s]#*
 *.zip
 *.pro
+*.gpi
+*.dri
